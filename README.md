@@ -55,3 +55,9 @@ The project includes SQL scripts to generate actionable insights, such as:
 3. Create a `.env` file in the root directory and add your database connection string: `DATABASE_URL=postgresql://username:password@localhost:5432/your_db_name`
 4. Place the source dataset (`Online_Retail.xlsx`) in the `Source_Data` folder.
 5. Execute the Python script to run the full ETL and database optimization pipeline.
+
+## Feature improvement
+
+1. Senior DE Tip: In enterprise environments, we don't keep these logs on the physical server because the hard drive would fill up and crash the system. Instead, we configure Airflow to automatically stream these logs out to cloud storage (like an AWS S3 bucket or Google Cloud Storage) so we have a permanent, infinite archive of every pipeline run!
+2. 
+3. 

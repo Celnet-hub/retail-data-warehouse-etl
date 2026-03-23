@@ -1,6 +1,8 @@
 from airflow import DAG
 from airflow.decorators import task
 from datetime import datetime, timedelta
+from extract_and_stage import start_process
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Airflow 2.x Default Arguments
 default_args = {
@@ -21,10 +23,31 @@ with DAG(
 ) as dag:
 
     @task
-    def extract_and_stage():
+    def create_staging_engine_config(conn_id: str = "dwh_postgres"):
+        hook = PostgresHook(postgres_conn_id=conn_id)
+        conn = hook.get_connection(conn_id)
+        hook.get_conn().close()
+        print(
+            f"Connection validated: conn_id={conn_id}, "
+            f"host={conn.host}, port={conn.port}, schema={conn.schema}"
+        )
+        return {
+            "conn_id": conn_id,
+            "host": conn.host,
+            "port": conn.port,
+            "schema": conn.schema,
+        }
+
+    @task
+    def extract_and_stage(connection_meta):
         print("Extracting data and loading to staging...")
-        # (Your pandas extraction code goes here)
-        return "Staging Complete"
+        conn_id = connection_meta["conn_id"]
+        print(
+            f"Using connection {conn_id} -> "
+            f"{connection_meta['host']}:{connection_meta['port']}/{connection_meta['schema']}"
+        )
+        meta = start_process(conn_id=conn_id)
+        return meta
 
     @task
     def clean_and_transform(previous_step_status):
@@ -45,7 +68,8 @@ with DAG(
         return "Pipeline Finished!"
 
     # Airflow 2 Dependency Chaining
-    step1 = extract_and_stage()
+    connection_meta = create_staging_engine_config()
+    step1 = extract_and_stage(connection_meta)
     step2 = clean_and_transform(step1)
     step3 = load_to_oltp(step2)
     step4 = build_olap_star_schema(step3)
