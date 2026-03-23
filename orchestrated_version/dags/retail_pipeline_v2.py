@@ -24,6 +24,12 @@ with DAG(
 
     @task
     def create_staging_engine_config(conn_id: str = "dwh_postgres"):
+        """ 
+        Preflight task: validates the Airflow connection and       exposes connection metadata (conn_id/host/port/schema) for downstream logging and task wiring. 
+
+        The SQLAlchemy engine is created later inside extract_and_stage.py when staging actually runs.
+
+        """
         hook = PostgresHook(postgres_conn_id=conn_id)
         conn = hook.get_connection(conn_id)
         hook.get_conn().close()

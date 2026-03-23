@@ -10,6 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent
 
 def get_engine(conn_id: str = "dwh_postgres"):
     hook = PostgresHook(postgres_conn_id=conn_id)
+    
+    # get connection details configured in the UI
     airflow_conn = hook.get_connection(conn_id)
 
     db_name = airflow_conn.schema
