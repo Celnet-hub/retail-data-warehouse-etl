@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.decorators import task
 from datetime import datetime, timedelta
 from extract_and_stage import start_process
+from transform import transform_data
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Airflow 2.x Default Arguments
@@ -54,12 +55,14 @@ with DAG(
         )
         meta = start_process(conn_id=conn_id)
         return meta
-
+    
+    # Cleaning and Transform
     @task
     def clean_and_transform(previous_step_status):
         print("Cleaning data with Pandas...")
-        # (Your transformation code goes here)
-        return "Cleaning Complete"
+        meta = transform_data()
+        print("Cleaning Complete")
+        return meta
 
     @task
     def load_to_oltp(previous_step_status):
