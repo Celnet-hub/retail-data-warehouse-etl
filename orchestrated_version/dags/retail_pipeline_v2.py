@@ -3,6 +3,7 @@ from airflow.decorators import task
 from datetime import datetime, timedelta
 from extract_and_stage import start_process
 from transform import transform_data
+from normalisation import start_process
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Airflow 2.x Default Arguments
@@ -53,7 +54,7 @@ with DAG(
             f"Using connection {conn_id} -> "
             f"{connection_meta['host']}:{connection_meta['port']}/{connection_meta['schema']}"
         )
-        meta = start_process(conn_id=conn_id)
+        meta = start_process()
         return meta
     
     # Cleaning and Transform
@@ -67,8 +68,9 @@ with DAG(
     @task
     def load_to_oltp(previous_step_status):
         print("Executing SQL to load data to OLTP partitioned tables...")
-        # (Your SQLAlchemy OLTP code goes here)
-        return "OLTP Load Complete"
+        meta = start_process()
+        print("OLTP Load Complete")
+        return meta
 
     @task
     def build_olap_star_schema(previous_step_status):
