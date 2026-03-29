@@ -2,6 +2,9 @@ from airflow import DAG
 from airflow.decorators import task
 from datetime import datetime, timedelta
 from extract_and_stage import start_process
+from transform import transform_data
+from normalisation import start_process
+from analytics import start_process
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Airflow 2.x Default Arguments
@@ -52,30 +55,34 @@ with DAG(
             f"Using connection {conn_id} -> "
             f"{connection_meta['host']}:{connection_meta['port']}/{connection_meta['schema']}"
         )
-        meta = start_process(conn_id=conn_id)
+        meta = start_process()
         return meta
-
+    
+    # Cleaning and Transform
     @task
     def clean_and_transform(previous_step_status):
         print("Cleaning data with Pandas...")
-        # (Your transformation code goes here)
-        return "Cleaning Complete"
+        meta = transform_data()
+        print("Cleaning Complete")
+        return meta
 
     @task
     def load_to_oltp(previous_step_status):
         print("Executing SQL to load data to OLTP partitioned tables...")
-        # (Your SQLAlchemy OLTP code goes here)
-        return "OLTP Load Complete"
+        meta = start_process()
+        print("OLTP Load Complete")
+        return meta
 
     @task
-    def build_olap_star_schema(previous_step_status):
+    def build_star_schema_and_run_analytics(previous_step_status):
         print("Executing SQL to build Fact and Dimension tables...")
-        # (Your OLAP Star Schema code goes here)
-        return "Pipeline Finished!"
+        meta = start_process()
+        print("Pipeline Finished....")
+        return meta
 
     # Airflow 2 Dependency Chaining
     connection_meta = create_staging_engine_config()
     step1 = extract_and_stage(connection_meta)
     step2 = clean_and_transform(step1)
     step3 = load_to_oltp(step2)
-    step4 = build_olap_star_schema(step3)
+    step4 = build_star_schema_and_run_analytics(step3)

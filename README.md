@@ -59,5 +59,4 @@ The project includes SQL scripts to generate actionable insights, such as:
 ## Feature improvement
 
 1. Senior DE Tip: In enterprise environments, we don't keep these logs on the physical server because the hard drive would fill up and crash the system. Instead, we configure Airflow to automatically stream these logs out to cloud storage (like an AWS S3 bucket or Google Cloud Storage) so we have a permanent, infinite archive of every pipeline run!
-2. 
-3. 
+   
