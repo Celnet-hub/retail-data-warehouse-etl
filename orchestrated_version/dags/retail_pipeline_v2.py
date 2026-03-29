@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from extract_and_stage import start_process
 from transform import transform_data
 from normalisation import start_process
+from analytics import start_process
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Airflow 2.x Default Arguments
@@ -73,14 +74,15 @@ with DAG(
         return meta
 
     @task
-    def build_olap_star_schema(previous_step_status):
+    def build_star_schema_and_run_analytics(previous_step_status):
         print("Executing SQL to build Fact and Dimension tables...")
-        # (Your OLAP Star Schema code goes here)
-        return "Pipeline Finished!"
+        meta = start_process()
+        print("Pipeline Finished....")
+        return meta
 
     # Airflow 2 Dependency Chaining
     connection_meta = create_staging_engine_config()
     step1 = extract_and_stage(connection_meta)
     step2 = clean_and_transform(step1)
     step3 = load_to_oltp(step2)
-    step4 = build_olap_star_schema(step3)
+    step4 = build_star_schema_and_run_analytics(step3)
